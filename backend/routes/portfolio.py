@@ -12,11 +12,12 @@ router = APIRouter()
 
 
 # GET /api/portfolio/
-# The main portfolio page — shows cash, total value, all positions, P&L
-@router.get("/", response_model=PortfolioOut)
+#the main portfolio page — shows cash, total value, all positions, P&L
+  @router.get("/", response_model=PortfolioOut)
 async def get_portfolio(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
+
 ):
     """
     Returns the full portfolio for the logged-in user.
@@ -37,9 +38,9 @@ async def get_portfolio(
     return portfolio
 
 
-# GET /api/portfolio/positions
+#gET /api/portfolio/positions
 # Just the list of stocks the user currently holds
-@router.get("/positions", response_model=list[PositionOut])
+  @router.get("/positions", response_model=list[PositionOut])
 async def get_positions(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -54,7 +55,7 @@ async def get_positions(
     )
     portfolio = result.scalar_one_or_none()
 
-    if portfolio is None:
+     if portfolio is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Portfolio not found."
@@ -68,10 +69,10 @@ async def get_positions(
     return positions
 
 
-# GET /api/portfolio/summary
+#GET /api/portfolio/summary
 # Quick numbers for the dashboard header cards
-@router.get("/summary")
-async def get_summary(
+    @router.get("/summary")
+     async def get_summary(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -87,8 +88,8 @@ async def get_summary(
     return summary
 
 
-# GET /api/portfolio/trades
-# Full trade history — every buy and sell the user has made
+# GET/api/portfolio/trades
+#Full trade history — every buy and sell the user has made
 @router.get("/trades", response_model=list[TradeOut])
 async def get_trades(
     db: AsyncSession = Depends(get_db),
@@ -107,9 +108,9 @@ async def get_trades(
 
 
 # GET /api/portfolio/performance
-# Performance analytics — Sharpe ratio, win rate, drawdown etc.
+#Performance analytics — Sharpe ratio, win rate, drawdown etc.
 @router.get("/performance")
-async def get_performance(
+     async def get_performance(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):

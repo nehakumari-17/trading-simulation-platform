@@ -6,14 +6,14 @@ import enum
 from backend.database import Base
 
 
-# ─────────────────────────────────────────────
+
 # ENUMS
 # These are fixed sets of allowed values for certain columns
-# ─────────────────────────────────────────────
+
 
 class OrderType(str, enum.Enum):
-    MARKET = "market"   # execute immediately at current price
-    LIMIT  = "limit"    # execute only when price reaches a target
+    MARKET = "market"   
+    LIMIT  = "limit"    
 
 
 class OrderSide(str, enum.Enum):
@@ -34,10 +34,9 @@ class StrategyName(str, enum.Enum):
     VWAP         = "vwap"          # VWAP-Based Strategy
 
 
-# ─────────────────────────────────────────────
+
 # TABLE 1: User
 # Stores every registered user
-# ─────────────────────────────────────────────
 
 class User(Base):
     __tablename__ = "users"
@@ -55,11 +54,9 @@ class User(Base):
     # One user can place many orders
     orders: Mapped[list["Order"]] = relationship("Order", back_populates="user")
 
-
-# ─────────────────────────────────────────────
 # TABLE 2: Portfolio
 # Tracks the cash balance and overall value for each user
-# ─────────────────────────────────────────────
+
 
 class Portfolio(Base):
     __tablename__ = "portfolios"
@@ -77,11 +74,10 @@ class Portfolio(Base):
     positions: Mapped[list["Position"]]  = relationship("Position", back_populates="portfolio")
 
 
-# ─────────────────────────────────────────────
+
 # TABLE 3: Position
 # A position is how many shares of a stock the user currently holds
-# One row per stock per user
-# ─────────────────────────────────────────────
+
 
 class Position(Base):
     __tablename__ = "positions"
@@ -96,13 +92,12 @@ class Position(Base):
     updated_at    : Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relationship back to portfolio
-    portfolio: Mapped["Portfolio"] = relationship("Portfolio", back_populates="positions")
+      portfolio: Mapped["Portfolio"] = relationship("Portfolio", back_populates="positions")
 
 
-# ─────────────────────────────────────────────
 # TABLE 4: Order
 # Every order a user places — buy or sell, market or limit
-# ─────────────────────────────────────────────
+
 
 class Order(Base):
     __tablename__ = "orders"
@@ -124,11 +119,10 @@ class Order(Base):
     user: Mapped["User"] = relationship("User", back_populates="orders")
 
 
-# ─────────────────────────────────────────────
+
 # TABLE 5: Trade
 # A trade is created when an order gets filled
-# Orders are intentions; trades are actual executions
-# ─────────────────────────────────────────────
+
 
 class Trade(Base):
     __tablename__ = "trades"
@@ -146,15 +140,15 @@ class Trade(Base):
     executed_at : Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
 
-# ─────────────────────────────────────────────
+
 # TABLE 6: StrategyRun
 # Records every time a user runs an algorithmic strategy
-# ─────────────────────────────────────────────
+
 
 class StrategyRun(Base):
-    __tablename__ = "strategy_runs"
+    __tablename__ = " strategy_runs "
 
-    id           : Mapped[int]          = mapped_column(Integer, primary_key=True, index=True)
+     id           : Mapped[int]          = mapped_column(Integer, primary_key=True, index=True)
     user_id      : Mapped[int]          = mapped_column(ForeignKey("users.id"), nullable=False)
     strategy_name: Mapped[StrategyName] = mapped_column(Enum(StrategyName), nullable=False)
     symbol       : Mapped[str]          = mapped_column(String(20), nullable=False)
@@ -162,11 +156,11 @@ class StrategyRun(Base):
     end_date     : Mapped[str]          = mapped_column(String(20), nullable=False)  # "2024-12-31"
 
     # Results stored after the strategy finishes running
-    total_return  : Mapped[float | None] = mapped_column(Float, nullable=True)
-    sharpe_ratio  : Mapped[float | None] = mapped_column(Float, nullable=True)
-    max_drawdown  : Mapped[float | None] = mapped_column(Float, nullable=True)
+     total_return  : Mapped[float | None] = mapped_column(Float, nullable=True)
+     sharpe_ratio  : Mapped[float | None] = mapped_column(Float, nullable=True)
+     max_drawdown  : Mapped[float | None] = mapped_column(Float, nullable=True)
     win_rate      : Mapped[float | None] = mapped_column(Float, nullable=True)
-    profit_factor : Mapped[float | None] = mapped_column(Float, nullable=True)
+     profit_factor : Mapped[float | None] = mapped_column(Float, nullable=True)
     total_trades  : Mapped[int | None]   = mapped_column(Integer, nullable=True)
 
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)

@@ -11,11 +11,9 @@ from backend.services.execution import place_order
 router = APIRouter()
 
 
-# ─────────────────────────────────────────────
 # PLACE ORDER
 # POST /api/orders/
-# User places a buy or sell order
-# ─────────────────────────────────────────────
+# User places a buy or sell orders
 @router.post("/", response_model=OrderOut, status_code=status.HTTP_201_CREATED)
 async def create_order(
     order_data: OrderCreate,
@@ -53,44 +51,46 @@ async def create_order(
     return order
 
 
-# ─────────────────────────────────────────────
+
 # GET ALL ORDERS
 # GET /api/orders/
-# Returns the logged-in user's full order history
-# ─────────────────────────────────────────────
+# Returns the login user's full order history
+
 @router.get("/", response_model=list[OrderOut])
-async def get_orders(
-    db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+         
+         async def get_orders(
+     db: AsyncSession = Depends(get_db),
+     current_user: User = Depends(get_current_user),
+       
 ):
     """
-    Returns all orders placed by the logged-in user.
-    Most recent orders appear first.
+      Returns all orders placed by the logged-in user.
+     Most recent orders appear first.
     """
     result = await db.execute(
         select(Order)
         .where(Order.user_id == current_user.id)
         .order_by(desc(Order.created_at))
-    )
-    orders = result.scalars().all()
-    return orders
+     )
+      orders = result.scalars().all()
+      return orders
 
-
-# ─────────────────────────────────────────────
 # GET SINGLE ORDER
 # GET /api/orders/{order_id}
 # Returns details of one specific order
-# ─────────────────────────────────────────────
+
 @router.get("/{order_id}", response_model=OrderOut)
 async def get_order(
     order_id: int,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
+
+
 ):
     """
-    Returns details of a single order by its ID.
+      Returns details of a single order by its ID.
     Users can only see their own orders.
-    """
+     """
     result = await db.execute(
         select(Order).where(
             Order.id == order_id,
@@ -108,16 +108,16 @@ async def get_order(
     return order
 
 
-# ─────────────────────────────────────────────
 # CANCEL ORDER
 # DELETE /api/orders/{order_id}
 # Cancels a pending limit order
-# ─────────────────────────────────────────────
-@router.delete("/{order_id}", response_model=OrderOut)
+
+    @router.delete("/{order_id}", response_model=OrderOut)
 async def cancel_order(
-    order_id: int,
+     order_id: int,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+     current_user: User = Depends(get_current_user)
+     ,
 ):
     """
     Cancels a PENDING limit order.
@@ -125,9 +125,10 @@ async def cancel_order(
     Already filled or cancelled orders cannot be cancelled again.
     """
     result = await db.execute(
-        select(Order).where(
+         select(Order).where(
             Order.id == order_id,
-            Order.user_id == current_user.id
+              Order.user_id == current_user.id
+
         )
     )
     order = result.scalar_one_or_none()
@@ -135,12 +136,14 @@ async def cancel_order(
     if order is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
+
             detail="Order not found."
         )
 
-    if order.status != OrderStatus.PENDING:
+     if order.status != OrderStatus.PENDING:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
+           
             detail=f"Cannot cancel an order with status '{order.status}'. Only PENDING orders can be cancelled."
         )
 

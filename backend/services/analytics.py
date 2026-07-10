@@ -1,13 +1,12 @@
 import math
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+ from sqlalchemy import select
 
 from backend.models import Trade, Portfolio, Position, OrderSide
 
 
-# I'm keeping each function small and focused.
-# Each one does one thing and returns a plain number or dict.
-# The route just calls whatever it needs.
+
+
 
 
 async def get_portfolio_summary(user_id: int, db: AsyncSession) -> dict:
@@ -23,7 +22,7 @@ async def get_portfolio_summary(user_id: int, db: AsyncSession) -> dict:
     if portfolio is None:
         return {}
 
-    # grab all open positions for this portfolio
+    #grab all open positions for this portfolio
     pos_result = await db.execute(
         select(Position).where(Position.portfolio_id == portfolio.id)
     )
@@ -33,7 +32,7 @@ async def get_portfolio_summary(user_id: int, db: AsyncSession) -> dict:
     holdings_value = sum(p.current_price * p.quantity for p in positions)
 
     # recalculate unrealized pnl across all positions
-    unrealized_pnl = sum(
+       unrealized_pnl = sum(
         (p.current_price - p.avg_buy_price) * p.quantity
         for p in positions
     )
@@ -42,7 +41,7 @@ async def get_portfolio_summary(user_id: int, db: AsyncSession) -> dict:
 
     return {
         "cash_balance":    round(portfolio.cash_balance, 2),
-        "holdings_value":  round(holdings_value, 2),
+     "holdings_value":  round(holdings_value, 2),
         "total_value":     total_value,
         "realized_pnl":    round(portfolio.realized_pnl, 2),
         "unrealized_pnl":  round(unrealized_pnl, 2),
@@ -112,7 +111,7 @@ async def get_performance_metrics(user_id: int, db: AsyncSession) -> dict:
     sharpe_ratio  = _calculate_sharpe_ratio(pnl_list)
 
     return {
-        "total_trades":  total_trades,
+         "total_trades":  total_trades,
         "win_rate":      win_rate,
         "total_return":  total_return,
         "profit_factor": profit_factor,
@@ -122,21 +121,21 @@ async def get_performance_metrics(user_id: int, db: AsyncSession) -> dict:
     }
 
 
-def _calculate_max_drawdown(pnl_list: list[float]) -> float:
+  def _calculate_max_drawdown(pnl_list: list[float]) -> float:
     """
     Walks through the equity curve and finds the biggest drop
     from a peak to the lowest point after it.
 
     Example: if equity went 100 → 150 → 90, the drawdown is 60.
     """
-    if not pnl_list:
+      if not pnl_list:
         return 0.0
 
     peak        = 0.0
     max_dd      = 0.0
     running     = 0.0
 
-    for pnl in pnl_list:
+     for pnl in pnl_list:
         running += pnl
         if running > peak:
             peak = running
@@ -151,7 +150,7 @@ def _calculate_sharpe_ratio(pnl_list: list[float], risk_free_rate: float = 0.0) 
     """
     Sharpe ratio = (average return - risk free rate) / std deviation of returns
 
-    We use 0 as the risk-free rate here to keep it simple.
+      We use 0 as the risk-free rate here to keep it simple.
     A ratio above 1 means the strategy is earning more than it risks.
     """
     if len(pnl_list) < 2:
@@ -162,7 +161,7 @@ def _calculate_sharpe_ratio(pnl_list: list[float], risk_free_rate: float = 0.0) 
     variance = sum((x - mean) ** 2 for x in pnl_list) / (n - 1)
     std_dev = math.sqrt(variance)
 
-    if std_dev == 0:
+      if std_dev == 0:
         return 0.0
 
     return round((mean - risk_free_rate) / std_dev, 2)

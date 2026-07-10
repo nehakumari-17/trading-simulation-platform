@@ -11,11 +11,8 @@ from backend.config import settings
 router = APIRouter()
 
 
-# ─────────────────────────────────────────────
 # REGISTER
 # POST /api/auth/register
-# Creates a new user account and a matching portfolio
-# ─────────────────────────────────────────────
 @router.post("/register", response_model=UserOut, status_code=status.HTTP_201_CREATED)
 async def register(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
     """
@@ -60,23 +57,20 @@ async def register(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
     return new_user
 
 
-# ─────────────────────────────────────────────
 # LOGIN
-# POST /api/auth/login
-# Verifies credentials and returns a JWT token
-# ─────────────────────────────────────────────
+#POST /api/auth/login
 @router.post("/login", response_model=Token)
-async def login(user_data: UserLogin, db: AsyncSession = Depends(get_db)):
+ async def login(user_data: UserLogin, db: AsyncSession = Depends(get_db)):
     """
     Accepts: email, password
     Returns: JWT access token
     """
 
-    # Find user by email
+       # Find user by email
     result = await db.execute(select(User).where(User.email == user_data.email))
     user = result.scalar_one_or_none()
 
-    # If user not found or password doesn't match
+     # If user not found or password doesn't matches
     if not user or not verify_password(user_data.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -96,17 +90,15 @@ async def login(user_data: UserLogin, db: AsyncSession = Depends(get_db)):
     return Token(access_token=token)
 
 
-# ─────────────────────────────────────────────
-# ME
-# GET /api/auth/me
-# Returns the currently logged-in user's profile
-# Requires a valid JWT token in the Authorization header
-# ─────────────────────────────────────────────
+ # GET /api/auth/me
+   # Returns the currently logged-in user's profile
+
 @router.get("/me", response_model=UserOut)
-async def get_me(current_user: User = Depends(get_current_user)):
+ async def get_me(current_user: User = Depends(get_current_user)):
     """
     Protected route — any request here must include the JWT token.
     FastAPI automatically calls get_current_user to verify the token.
     Returns the logged-in user's profile.
     """
-    return current_user
+      return current_user
+ 
