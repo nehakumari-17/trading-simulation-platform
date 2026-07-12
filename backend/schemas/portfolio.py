@@ -1,50 +1,43 @@
 from pydantic import BaseModel
 from datetime import datetime
 
-# A single stock position the user holds
 
+# A single stock position the user currently holds
 class PositionOut(BaseModel):
-
-
     id: int
     symbol: str
     quantity: int
-    avg_buy_price: float      #average price paid per share
-    current_price: float      #latest market price
-    unrealized_pnl: float     #(current_price - avg_buy_price) * quantity
+    avg_buy_price: float
+    current_price: float
+    unrealized_pnl: float
     updated_at: datetime
 
     model_config = {"from_attributes": True}
 
 
-
-# Full portfolio summary that shown on the dashboard
-
+# Full portfolio summary shown on the dashboard
 class PortfolioOut(BaseModel):
-
     id: int
-    cash_balance: float       # how much virtual cash is left
-    total_value: float        # cash + current value of all positions
-    realized_pnl: float       # profit/loss from trades already closed
-    unrealized_pnl: float     # profit/loss on currently on open positions
+    cash_balance: float
+    total_value: float
+    realized_pnl: float
+    unrealized_pnl: float
     updated_at: datetime
-    positions: list[PositionOut]  # list of all stocks currently held
+    positions: list[PositionOut]
 
     model_config = {"from_attributes": True}
 
 
-
-# A single trade from the user's trade history
-
+# A single completed trade from the user's history
 class TradeOut(BaseModel):
     id: int
     symbol: str
-    side: str             #buy or sell
+    side: str
     quantity: int
- fill_price: float
+    fill_price: float
     slippage: float
- transaction_cost: float
-  pnl: float
+    transaction_cost: float
+    pnl: float
     executed_at: datetime
 
     model_config = {"from_attributes": True}

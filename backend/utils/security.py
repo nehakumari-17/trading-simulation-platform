@@ -10,9 +10,8 @@ from backend.config import settings
 from backend.database import get_db
 
 
-# Password Hashing
-
-  pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# Password hashing using bcrypt — industry standard
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 def hash_password(plain_password: str) -> str:
@@ -20,14 +19,9 @@ def hash_password(plain_password: str) -> str:
     return pwd_context.hash(plain_password)
 
 
- def verify_password(plain_password: str, hashed_password: str) -> bool:
+def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Checks if a plain password matches the stored hash. Returns True/False."""
-     return pwd_context.verify(plain_password, hashed_password)
-
-
-
-# It is a small encoded string we give the user after login
-# The user sends it back with every request to prove they are logged in
+    return pwd_context.verify(plain_password, hashed_password)
 
 
 def create_access_token(user_id: int) -> str:
@@ -37,29 +31,25 @@ def create_access_token(user_id: int) -> str:
     """
     expire = datetime.utcnow() + timedelta(minutes=settings.access_token_expire_minutes)
     payload = {
-        "sub": str(user_id),   # "sub" = subject (who the token belongs to)
-        "exp": expire           # expiry time
+        "sub": str(user_id),
+        "exp": expire,
     }
     return jwt.encode(payload, settings.secret_key, algorithm=settings.algorithm)
 
 
-# This tells FastAPI to look for the token in the
-# "Authorization: Bearer <token>" header of incoming requests 
-
-
+# Tells FastAPI to look for the token in the Authorization: Bearer <token> header
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
 
 async def get_current_user(
     token: str = Depends(oauth2_scheme),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     """
-     FastAPI dependency — decodes the JWT token and returns the logged-in user.
+    FastAPI dependency — decodes the JWT token and returns the logged-in user.
     Any route that needs authentication uses: Depends(get_current_user)
-    If the token is missing, expired, or invalid, it returns a 401 error.
+    Returns 401 if token is missing, expired, or invalid.
     """
-    
     from backend.models import User
 
     credentials_error = HTTPException(
@@ -69,7 +59,6 @@ async def get_current_user(
     )
 
     try:
-        # Decode the token using our secret key
         payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
         user_id: str = payload.get("sub")
         if user_id is None:
@@ -77,7 +66,6 @@ async def get_current_user(
     except JWTError:
         raise credentials_error
 
-    # Fetch the user from the database
     result = await db.execute(select(User).where(User.id == int(user_id)))
     user = result.scalar_one_or_none()
 
