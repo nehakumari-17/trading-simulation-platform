@@ -19,6 +19,7 @@ aiosqlite==0.21.0        # async driver for SQLite
 # --- Authentication ---
 python-jose[cryptography]==3.5.0    # JWT token creation and verification
 passlib[bcrypt]==1.7.4              # password hashing
+bcrypt==4.0.1                       # passlib is incompatible with bcrypt 5.x — keep at 4.0.1
 python-multipart==0.0.20            # needed for login form data
 
 # --- Settings ---

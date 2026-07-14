@@ -1,0 +1,70 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* pull in Inter from google fonts — clean sans-serif for UI text */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* dark base for the whole app — broker style */
+body {
+  background-color: #0f0f0f;
+  color: #e5e7eb;
+  font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* hide scrollbar but keep scroll behavior */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: #1a1a1a;
+}
+::-webkit-scrollbar-thumb {
+  background: #374151;
+  border-radius: 2px;
+}
+
+/* utility classes used across multiple components */
+@layer components {
+
+  /* standard card box */
+  .card {
+    @apply bg-[#1e1e1e] rounded-xl border border-[#2a2a2a] p-4;
+  }
+
+  /* green pill badge — buy / profit */
+  .badge-green {
+    @apply text-xs px-2 py-0.5 rounded-full bg-green-500/10 text-green-400;
+  }
+
+  /* red pill badge — sell / loss */
+  .badge-red {
+    @apply text-xs px-2 py-0.5 rounded-full bg-red-500/10 text-red-400;
+  }
+
+  /* reusable input field */
+  .input {
+    @apply w-full bg-[#252525] border border-[#333] rounded-lg px-3 py-2
+           text-sm text-gray-200 placeholder-gray-500
+           focus:outline-none focus:border-blue-500 transition-colors;
+  }
+
+  /* primary action button */
+  .btn-primary {
+    @apply px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700
+           text-white text-sm font-medium transition-colors;
+  }
+
+  /* buy button — green */
+  .btn-buy {
+    @apply px-4 py-2 rounded-lg bg-green-600 hover:bg-green-700
+           text-white text-sm font-semibold transition-colors;
+  }
+
+  /* sell button — red */
+  .btn-sell {
+    @apply px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700
+           text-white text-sm font-semibold transition-colors;
+  }
+}
