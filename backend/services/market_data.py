@@ -18,10 +18,10 @@ INSTRUMENT_INFO = {
     "WIPRO":      {"name": "Wipro Ltd",                     "sector": "IT"},
     "AXISBANK":   {"name": "Axis Bank Ltd",                 "sector": "Banking"},
     "BAJFINANCE": {"name": "Bajaj Finance Ltd",             "sector": "Finance"},
-    "TATAMOTORS": {"name": "Tata Motors Ltd",               "sector": "Auto"},
+    "KOTAKBANK":  {"name": "Kotak Mahindra Bank Ltd",       "sector": "Banking"},
     "MARUTI":     {"name": "Maruti Suzuki India Ltd",       "sector": "Auto"},
     "SUNPHARMA":  {"name": "Sun Pharmaceutical Industries", "sector": "Pharma"},
-    "LTIM":       {"name": "LTIMindtree Ltd",               "sector": "IT"},
+    "ASIANPAINT": {"name": "Asian Paints Ltd",              "sector": "Consumer"},
     "HINDUNILVR": {"name": "Hindustan Unilever Ltd",        "sector": "FMCG"},
     "ITC":        {"name": "ITC Ltd",                       "sector": "FMCG"},
 }
