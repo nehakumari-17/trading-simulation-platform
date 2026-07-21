@@ -28,7 +28,20 @@ INSTRUMENT_INFO = {
 
 
 async def get_latest_price(symbol: str) -> float | None:
-    """Returns the latest closing price for a symbol. Used by order execution."""
+    """
+    Returns the current live price for a symbol from the simulation engine.
+    Falls back to the last CSV close if the engine hasn't started yet.
+    """
+    # try the engine first — gives the live replayed price
+    try:
+        from backend.simulation.engine import sim_engine
+        price = sim_engine.get_current_price(symbol.upper())
+        if price is not None:
+            return price
+    except Exception:
+        pass
+
+    # fallback — last candle close (used during startup before engine loads)
     candle = get_latest_candle(symbol.upper())
     if candle is None:
         return None
