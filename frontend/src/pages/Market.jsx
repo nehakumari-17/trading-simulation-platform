@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from 'react'
-import { Search, ChevronUp, ChevronDown } from 'lucide-react'
+import { Search } from 'lucide-react'
 import { getInstruments, getQuote, getCandles } from '../services/market'
 import { getOrders } from '../services/orders'
-import CandleChart from '../components/CandleChart'
-import QuoteBar    from '../components/QuoteBar'
-import OrderForm   from '../components/OrderForm'
+import CandleChart     from '../components/CandleChart'
+import QuoteBar        from '../components/QuoteBar'
+import OrderForm       from '../components/OrderForm'
+import OrderBookPanel  from '../components/OrderBookPanel'
 
 export default function Market() {
   const [instruments, setInstruments]   = useState([])
@@ -13,9 +14,9 @@ export default function Market() {
   const [quote, setQuote]               = useState(null)
   const [candles, setCandles]           = useState([])
   const [orders, setOrders]             = useState([])
+  const [orderBook, setOrderBook]       = useState(null)
   const [loadingChart, setLoadingChart] = useState(false)
 
-  // websocket ref for live price ticks
   const wsRef = useRef(null)
 
   // load instrument list on mount
@@ -51,14 +52,20 @@ export default function Market() {
     const ws = new WebSocket(`ws://localhost:8000/ws/prices/${selectedSymbol}`)
     ws.onmessage = (e) => {
       const tick = JSON.parse(e.data)
-      if (tick.error) return
-      // update just the LTP and change in the quote — no full reload needed
+      if (tick.error || tick.type === 'ping') return
+
+      // update live price in the quote bar
       setQuote((prev) => prev ? {
         ...prev,
         ltp:        tick.ltp,
         change:     tick.change,
         change_pct: tick.change_pct,
       } : prev)
+
+      // update order book depth panel
+      if (tick.order_book) {
+        setOrderBook(tick.order_book)
+      }
     }
     wsRef.current = ws
 
@@ -191,13 +198,17 @@ export default function Market() {
         )}
       </div>
 
-      {/* ── right: order form ───────────────────────────── */}
-      <div className="w-64 shrink-0">
+      {/* ── right: order form + order book ─────────────── */}
+      <div className="w-64 shrink-0 flex flex-col gap-3">
         <OrderForm
           symbol={selectedSymbol}
           currentPrice={quote?.ltp}
           onOrderPlaced={loadOrders}
         />
+        {/* order book panel — only shown when a stock is selected */}
+        {selectedSymbol && (
+          <OrderBookPanel orderBook={orderBook} />
+        )}
       </div>
 
     </div>

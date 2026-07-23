@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { getPositions, getTrades, getPerformance, getSummary } from '../services/portfolio'
 import { TrendingUp, TrendingDown, Wallet, BarChart2, RefreshCw } from 'lucide-react'
+import { useAuth } from '../context/AuthContext'
 
 // helper — format as Indian rupees
 const inr = (n) =>
@@ -16,12 +17,15 @@ const PnlText = ({ value }) => {
 }
 
 export default function Portfolio() {
-  const [summary,     setSummary]     = useState(null)
-  const [positions,   setPositions]   = useState([])
-  const [trades,      setTrades]      = useState([])
-  const [performance, setPerformance] = useState(null)
-  const [tab,         setTab]         = useState('positions') // 'positions' | 'trades'
-  const [loading,     setLoading]     = useState(true)
+  const { user }                          = useAuth()
+  const [summary,     setSummary]         = useState(null)
+  const [positions,   setPositions]       = useState([])
+  const [trades,      setTrades]          = useState([])
+  const [performance, setPerformance]     = useState(null)
+  const [tab,         setTab]             = useState('positions')
+  const [loading,     setLoading]         = useState(true)
+  const [lastRefresh, setLastRefresh]     = useState(null) // timestamp of last auto-refresh
+  const wsRef                             = useRef(null)
 
   const loadAll = () => {
     setLoading(true)
@@ -36,12 +40,40 @@ export default function Portfolio() {
         setPositions(p)
         setTrades(t)
         setPerformance(perf)
+        setLastRefresh(new Date().toLocaleTimeString('en-IN'))
       })
       .catch(console.error)
       .finally(() => setLoading(false))
   }
 
   useEffect(loadAll, [])
+
+  // connect to portfolio WebSocket — auto-refreshes when engine signals
+  useEffect(() => {
+    if (!user?.id) return
+
+    const ws = new WebSocket(`ws://localhost:8000/ws/portfolio/${user.id}`)
+
+    ws.onmessage = (e) => {
+      const msg = JSON.parse(e.data)
+      // engine sends { message: "refresh" } every 5s — reload portfolio data
+      if (msg.type === 'portfolio_update' && msg.message === 'refresh') {
+        // silent refresh — no loading spinner, just update the numbers
+        Promise.all([getSummary(), getPositions()])
+          .then(([s, p]) => {
+            setSummary(s)
+            setPositions(p)
+            setLastRefresh(new Date().toLocaleTimeString('en-IN'))
+          })
+          .catch(() => {}) // silently fail — don't crash the page
+      }
+    }
+
+    ws.onerror = () => {} // suppress console errors on disconnect
+    wsRef.current = ws
+
+    return () => ws.close()
+  }, [user?.id])
 
   if (loading) {
     return (
@@ -121,14 +153,21 @@ export default function Portfolio() {
             </button>
           ))}
 
-          {/* refresh button */}
-          <button
-            onClick={loadAll}
-            className="ml-auto px-4 text-gray-500 hover:text-gray-300 transition-colors"
-            title="Refresh"
-          >
-            <RefreshCw size={13} />
-          </button>
+          {/* refresh button + last updated time */}
+          <div className="ml-auto flex items-center gap-2 px-4">
+            {lastRefresh && (
+              <span className="text-[10px] text-gray-600">
+                updated {lastRefresh}
+              </span>
+            )}
+            <button
+              onClick={loadAll}
+              className="text-gray-500 hover:text-gray-300 transition-colors"
+              title="Refresh"
+            >
+              <RefreshCw size={13} />
+            </button>
+          </div>
         </div>
 
         {/* positions table */}

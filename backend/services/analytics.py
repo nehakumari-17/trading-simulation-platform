@@ -48,20 +48,30 @@ async def get_trade_history(user_id: int, db: AsyncSession) -> list[Trade]:
 
 async def get_performance_metrics(user_id: int, db: AsyncSession) -> dict:
     """
-    Calculates performance metrics from the user's SELL trades.
-    Includes win rate, Sharpe ratio, max drawdown, and profit factor.
+    Calculates performance metrics from the user's trade history.
+
+    total_trades  = ALL trades (buy + sell) — what the user sees in Trade History
+    P&L metrics   = only SELL trades, because P&L is only realised on a sell
     """
-    result = await db.execute(
+    # count all trades for the total_trades number
+    all_result = await db.execute(
+        select(Trade).where(Trade.user_id == user_id)
+    )
+    all_trades  = all_result.scalars().all()
+    total_trades = len(all_trades)
+
+    # P&L calculations only use sell trades
+    sell_result = await db.execute(
         select(Trade).where(
             Trade.user_id == user_id,
-            Trade.side == OrderSide.SELL
+            Trade.side    == OrderSide.SELL,
         )
     )
-    trades = result.scalars().all()
+    sell_trades = sell_result.scalars().all()
 
-    if not trades:
+    if not sell_trades:
         return {
-            "total_trades": 0,
+            "total_trades": total_trades,  # still show correct count even with no sells
             "win_rate":     0.0,
             "total_return": 0.0,
             "profit_factor":0.0,
@@ -70,22 +80,21 @@ async def get_performance_metrics(user_id: int, db: AsyncSession) -> dict:
             "sharpe_ratio": 0.0,
         }
 
-    pnl_list     = [t.pnl for t in trades]
-    wins         = [p for p in pnl_list if p > 0]
-    losses       = [p for p in pnl_list if p <= 0]
-    total_trades = len(pnl_list)
-    total_return = round(sum(pnl_list), 2)
-    win_rate     = round(len(wins) / total_trades * 100, 2)
-    avg_pnl      = round(total_return / total_trades, 2)
+    pnl_list      = [t.pnl for t in sell_trades]
+    wins          = [p for p in pnl_list if p > 0]
+    losses        = [p for p in pnl_list if p <= 0]
+    total_return  = round(sum(pnl_list), 2)
+    win_rate      = round(len(wins) / len(sell_trades) * 100, 2)
+    avg_pnl       = round(total_return / len(sell_trades), 2)
 
     gross_profit  = sum(wins)
     gross_loss    = abs(sum(losses)) if losses else 0
     profit_factor = round(gross_profit / gross_loss, 2) if gross_loss > 0 else 0.0
 
     return {
-        "total_trades": total_trades,
-        "win_rate":     win_rate,
-        "total_return": total_return,
+        "total_trades": total_trades,       # all trades — matches Trade History count
+        "win_rate":     win_rate,           # % of sell trades that were profitable
+        "total_return": total_return,       # total realised P&L from sells
         "profit_factor":profit_factor,
         "avg_pnl":      avg_pnl,
         "max_drawdown": _calculate_max_drawdown(pnl_list),
