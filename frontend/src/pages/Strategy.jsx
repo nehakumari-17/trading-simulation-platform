@@ -25,8 +25,8 @@ export default function Strategy() {
   const [form, setForm] = useState({
     symbol:       '',
     strategyName: 'ma_crossover',
-    startDate:    '2023-01-01',
-    endDate:      '2024-01-01',
+    startDate:    '2024-07-01',   // matches our CSV data range (downloaded from July 2024)
+    endDate:      '2026-06-30',
   })
 
   useEffect(() => {
@@ -140,6 +140,12 @@ export default function Strategy() {
                 required
               />
             </div>
+
+            {/* hint so user knows what data is available */}
+            <p className="text-[11px] text-gray-600 px-1">
+              Available data: Jul 2024 — present.
+              Use a range of at least 6 months for meaningful signals.
+            </p>
 
             <button
               type="submit"

@@ -41,7 +41,7 @@ STOCKS = {
 
 # download last 2 years of daily data
 END_DATE   = datetime.today().strftime("%Y-%m-%d")
-START_DATE = (datetime.today() - timedelta(days=730)).strftime("%Y-%m-%d")
+START_DATE = (datetime.today() - timedelta(days=1825)).strftime("%Y-%m-%d")  # 5 years
 
 os.makedirs(DATA_DIR, exist_ok=True)
 
